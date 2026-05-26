@@ -369,16 +369,14 @@ function renderTask(t){
     h+='<div class="match-grid">';
     // Interleaved: left[0]+right[0], left[1]+right[1], ...
     for(var i=0;i<t.left.length;i++){
-      var pairedL=false;for(var k=0;k<ms.done.length;k++){if(ms.done[k].l===i){pairedL=true;break;}}
+      var pairedL=false;var pairedLok=false;for(var k=0;k<ms.done.length;k++){if(ms.done[k].l===i){pairedL=true;pairedLok=(t.c[i]===ms.done[k].r);break;}}
       var isSelL=ms.sel&&ms.sel.side==='l'&&ms.sel.i===i;
-      var pairedLok=pairedL&&t.c[i]===ms.done.find(function(d){return d.l===i;}).r;
       var clsL=pairedL?(pairedLok?'match-item ok':'match-item bad'):(isSelL?'match-item sel':'match-item');
       h+='<div class="'+clsL+'" onclick="mCl(\'l\','+i+')">'+t.left[i]+'</div>';
       var ri=td.sr[i];
-      var pairedR=false;for(var m=0;m<ms.done.length;m++){if(ms.done[m].r===ri){pairedR=true;break;}}
+      var pairedR=false;var pairedRok=false;for(var m=0;m<ms.done.length;m++){if(ms.done[m].r===ri){pairedR=true;pairedRok=(t.c[ms.done[m].l]===ri);break;}}
       var isBad=ms.wrong.indexOf(ri)>=0;
       var isSelR=ms.sel&&ms.sel.side==='r'&&ms.sel.i===ri;
-      var pairedRok=pairedR&&ms.done.find(function(d){return d.r===ri&&t.c[d.l]===ri;});
       var clsR=pairedR?(pairedRok?'match-item ok':'match-item bad'):(isBad?'match-item bad':(isSelR?'match-item sel':'match-item'));
       h+='<div class="'+clsR+'" onclick="mCl(\'r\','+ri+')">'+t.right[ri]+'</div>';
     }
@@ -423,7 +421,7 @@ function renderTask(t){
       h+='<div class="'+cls+'"'+(ch?'':' onclick="choS('+i+')"')+'>';
       h+='<div class="sopt-title">'+o.t+'</div>';
       h+='<div class="sopt-desc">'+o.d+'</div>';
-      if(ch&&i===td.sc2&&o.best)h+='<div class="fb ok" style="margin-top:8px;padding:8px 12px;font-size:14px">&#10003; '+o.fb+'</div>';
+      if(ch&&i===td.sc2)h+='<div class="fb '+(o.best?'ok':'err')+'" style="margin-top:8px;padding:8px 12px;font-size:14px">'+(o.best?'&#10003;':'&#10007;')+' '+o.fb+'</div>';
       h+='</div>';
     }
     h+='</div>';
@@ -540,6 +538,7 @@ function chkPw(){
   for(var i=0;i<pw.length;i++){var el=document.getElementById('pl'+i);if(el)val+=el.value;}
   var msg=document.getElementById('pwm');
   if(val.toUpperCase()===pw){
+    document.querySelector('[onclick*="chkPw"]').disabled=true;
     if(msg)msg.innerHTML='<div class="pw-ok" style="font-family:Cinzel,serif;font-size:15px">&#10003; Korrekt! Der n\u00E4chste Raum \u00F6ffnet sich\u2026</div>';
     setTimeout(function(){
       if(S.room<ROOMS.length-1){S.room++;S.step=0;S.td={};S.screen='room';}
