@@ -170,12 +170,8 @@ function prog(){
 }
 
 function r1(){return[
-  {type:'quiz',
-   q:'Lena zeigt auf ein altes Schild: Epochen der Musikgeschichte. Karim: Welche kommt zuerst? Ordne die Epochen &#8211; welche ist die \u00E4lteste?',
-   opts:['Romantik','Klassik','Barock'],c:2,
-   fb:['Romantik ist die j\u00FCngste der drei &#8211; ca. 1800\u20131900.','Klassik liegt in der Mitte, nicht am Anfang.','Richtig! Barock ist die \u00E4lteste Epoche der drei, ca. 1600\u20131750. Danach folgt Klassik, dann Romantik.']},
   {type:'sort',
-   q:'Gut! Jetzt die richtige Reihenfolge: Sortiere Barock, Klassik und Romantik von alt nach neu.',
+   q:'Sortiere Barock, Klassik und Romantik von alt nach neu.',
    items:['Romantik','Barock','Klassik'],
    c:[1,2,0],
    fb:['Perfekt! Barock \u2192 Klassik \u2192 Romantik. Das Archiv gibt seinen ersten Hinweis frei.','Nicht ganz. Barock beginnt ca. 1600, dann folgt Klassik, und zuletzt die Romantik ab ca. 1800.']},
@@ -203,9 +199,9 @@ function r2(){return[
 
 function r3(){return[
   {type:'match',
-   q:'An der Wand h\u00E4ngen Portr\u00E4ts. Links die Komponisten, rechts ihre bekanntesten Werke. Ordne richtig zu.',
+   q:'An der Wand h\u00E4ngen Portr\u00E4ts. Links die Komponisten, rechts bekannte Werke. Ordne richtig zu.',
    left:['Franz Schubert','Fr\u00E9d\u00E9ric Chopin','Robert Schumann','Richard Wagner'],
-   right:['Ring des Nibelungen (Oper)','Dichterliebe (Liederzyklus)','Winterreise (Liederzyklus)','Klavierballade g-Moll Nr.\u00A01'],
+   right:['Ring des Nibelungen (Oper)','Liederkreis','Die Unvollendete','Klavierballade g-Moll Nr.\u00A01'],
    c:[2,3,1,0]},
   {type:'quiz',
    q:'Karim h\u00E4lt ein Notenblatt hoch: \u201EIn der Fremde\u201C &#8211; ein Gedicht von Eichendorff. Wer hat es vertont?',
@@ -421,11 +417,11 @@ function renderTask(t){
     for(var i=0;i<t.opts.length;i++){
       var o=t.opts[i];
       var ch=td.sc2!==undefined;
-      var cls='sopt'+(ch?(o.best?' best':' bad'):'');
+      var cls='sopt'+(ch&&i===td.sc2&&o.best?' best':'');
       h+='<div class="'+cls+'"'+(ch?'':' onclick="choS('+i+')"')+'>';
       h+='<div class="sopt-title">'+o.t+'</div>';
       h+='<div class="sopt-desc">'+o.d+'</div>';
-      if(ch)h+='<div class="fb '+(o.best?'ok':'err')+'" style="margin-top:8px;padding:8px 12px;font-size:14px">'+(o.best?'&#10003;':'&#10007;')+' '+o.fb+'</div>';
+      if(ch&&i===td.sc2)h+='<div class="fb '+(o.best?'ok':'err')+'" style="margin-top:8px;padding:8px 12px;font-size:14px">'+(o.best?'&#10003;':'&#10007;')+' '+o.fb+'</div>';
       h+='</div>';
     }
     h+='</div>';
