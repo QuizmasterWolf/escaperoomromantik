@@ -1,0 +1,675 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0a1a;color:#e8d5a3;font-family:'EB Garamond',serif;min-height:100vh;overflow-x:hidden}
+:root{
+  --gold:#c9a84c;--gold-light:#e8d5a3;--gold-dim:#8a6a2a;
+  --deep:#0d0a1a;--navy:#1a1530;--purple:#2a1f4a;--mist:#3d3060;
+  --parchment:#f5e6c8;--ink:#1a0f05;
+  --success:#4a7c59;--error:#7c3a3a;
+}
+.game-wrap{max-width:780px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column}
+
+/* PROGRESS BAR */
+.progress-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;padding:12px 16px;background:rgba(26,21,48,0.8);border:1px solid var(--gold-dim);border-radius:12px}
+.progress-label{font-family:'Cinzel',serif;font-size:12px;color:var(--gold-dim);text-transform:uppercase;letter-spacing:2px;white-space:nowrap}
+.dots-row{display:flex;gap:8px;flex:1;justify-content:center}
+.dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:11px;color:var(--gold-dim);transition:all 0.4s;cursor:default;flex-shrink:0}
+.dot.done{background:var(--gold);border-color:var(--gold);color:var(--deep)}
+.dot.active{background:rgba(201,168,76,0.2);border-color:var(--gold);color:var(--gold);box-shadow:0 0 12px rgba(201,168,76,0.4)}
+
+/* CARDS */
+.card{background:linear-gradient(160deg,#1a1530 0%,#0f0c20 100%);border:1px solid var(--gold-dim);border-radius:16px;padding:28px;position:relative;overflow:hidden;margin-bottom:16px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.card-deco{position:absolute;top:12px;right:16px;font-size:32px;opacity:0.08;font-family:'Cinzel',serif}
+
+/* TYPOGRAPHY */
+h1{font-family:'Cinzel',serif;font-size:28px;font-weight:700;color:var(--gold);line-height:1.2;margin-bottom:8px;text-shadow:0 0 20px rgba(201,168,76,0.3)}
+h2{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--gold);margin-bottom:12px}
+h3{font-family:'Cinzel',serif;font-size:16px;font-weight:400;color:var(--gold-light);margin-bottom:8px}
+p{font-size:16px;line-height:1.7;color:var(--gold-light);margin-bottom:12px}
+.muted{color:#9a8a6a;font-size:14px}
+
+/* MAESTRO */
+.maestro-box{display:flex;gap:14px;background:rgba(42,31,74,0.6);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:14px 18px;margin-bottom:20px;align-items:flex-start}
+.maestro-avatar{font-size:36px;line-height:1;flex-shrink:0;margin-top:2px}
+.maestro-name{font-family:'Cinzel',serif;font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.maestro-text{font-style:italic;font-size:15px;color:#c8b896;line-height:1.6}
+
+/* BUTTONS */
+.btn{display:inline-block;padding:11px 24px;border-radius:8px;font-family:'Cinzel',serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;border:none;letter-spacing:1px;text-align:center}
+.btn-gold{background:var(--gold);color:var(--deep)}
+.btn-gold:hover{background:#e8c050;transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+.btn-outline:hover{background:rgba(201,168,76,0.1)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-full{width:100%;margin-top:8px}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* QUIZ */
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.quiz-opt{display:block;width:100%;padding:12px 16px;background:rgba(26,21,48,0.8);border:1px solid rgba(201,168,76,0.3);border-radius:8px;color:var(--gold-light);font-family:'EB Garamond',serif;font-size:15px;cursor:pointer;text-align:left;transition:all 0.2s}
+.quiz-opt:hover:not(:disabled){background:rgba(201,168,76,0.1);border-color:var(--gold)}
+.quiz-opt.correct{background:rgba(74,124,89,0.3);border-color:#6ab384;color:#a8d8b8}
+.quiz-opt.wrong{background:rgba(124,58,58,0.3);border-color:#c47a7a;color:#e8aaaa}
+.quiz-opt:disabled{cursor:default}
+.feedback{padding:12px 16px;border-radius:8px;font-size:15px;line-height:1.6;margin-top:10px}
+.feedback.ok{background:rgba(74,124,89,0.2);border:1px solid rgba(106,179,132,0.4);color:#a8d8b8}
+.feedback.err{background:rgba(124,58,58,0.2);border:1px solid rgba(196,122,122,0.4);color:#e8aaaa}
+
+/* SORT / DRAG */
+.sort-list{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.sort-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(26,21,48,0.8);border:1px solid rgba(201,168,76,0.25);border-radius:8px;cursor:grab;user-select:none;color:var(--gold-light);font-size:15px;transition:all 0.15s}
+.sort-item:active{cursor:grabbing}
+.sort-item.drag-over{border-color:var(--gold);background:rgba(201,168,76,0.1)}
+.sort-item.dragging{opacity:0.5}
+.sort-handle{color:var(--gold-dim);font-size:18px;flex-shrink:0}
+.sort-num{font-family:'Cinzel',serif;font-size:13px;color:var(--gold-dim);min-width:20px}
+.sort-result{padding:10px 16px;border-radius:8px;font-size:14px;margin-top:8px;line-height:1.6}
+
+/* MATCHING */
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+.match-col-head{font-family:'Cinzel',serif;font-size:12px;color:var(--gold-dim);letter-spacing:2px;text-transform:uppercase;padding:4px 0 8px;text-align:center}
+.match-item{padding:10px 12px;background:rgba(26,21,48,0.8);border:1px solid rgba(201,168,76,0.25);border-radius:8px;cursor:pointer;font-size:14px;text-align:center;transition:all 0.2s;color:var(--gold-light);min-height:44px;display:flex;align-items:center;justify-content:center;line-height:1.3}
+.match-item:hover{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+.match-item.selected{border-color:var(--gold);background:rgba(201,168,76,0.18);color:var(--gold)}
+.match-item.matched-ok{border-color:#6ab384;background:rgba(74,124,89,0.25);color:#a8d8b8;cursor:default}
+.match-item.matched-err{border-color:#c47a7a;background:rgba(124,58,58,0.25);color:#e8aaaa;animation:shake 0.3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* PASSWORD */
+.pw-wrap{text-align:center;margin:20px 0}
+.pw-input-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.pw-letter{width:42px;height:52px;background:rgba(26,21,48,0.9);border:1px solid var(--gold-dim);border-radius:6px;font-family:'Cinzel',serif;font-size:22px;font-weight:700;text-align:center;color:var(--gold);outline:none;transition:all 0.2s;text-transform:uppercase;caret-color:var(--gold)}
+.pw-letter:focus{border-color:var(--gold);box-shadow:0 0 12px rgba(201,168,76,0.3)}
+.pw-hint{background:rgba(42,31,74,0.5);border:1px solid rgba(201,168,76,0.2);border-radius:8px;padding:10px 16px;font-style:italic;font-size:14px;color:#9a8a6a;margin-top:12px;display:none}
+.pw-hint.visible{display:block}
+.pw-err{color:#e8aaaa;font-size:14px;margin-top:8px}
+.pw-ok{color:#a8d8b8;font-size:14px;margin-top:8px}
+.pw-stars{font-size:28px;letter-spacing:4px;margin:8px 0}
+
+/* HOTSPOT */
+.hotspot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.hotspot-cell{aspect-ratio:1;background:rgba(26,21,48,0.8);border:1px solid rgba(201,168,76,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;transition:all 0.2s;position:relative;overflow:hidden}
+.hotspot-cell:hover{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+.hotspot-cell.selected{border-color:var(--gold);background:rgba(201,168,76,0.15);box-shadow:0 0 16px rgba(201,168,76,0.2)}
+.hotspot-cell.correct{border-color:#6ab384;background:rgba(74,124,89,0.25)}
+.hotspot-cell.wrong{border-color:#c47a7a;background:rgba(124,58,58,0.25)}
+.hotspot-label{font-size:11px;font-family:'Cinzel',serif;color:var(--gold-dim);margin-top:4px;text-align:center}
+
+/* SCENARIO */
+.scenario-cards{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.scenario-opt{padding:14px 18px;background:rgba(26,21,48,0.8);border:1px solid rgba(201,168,76,0.25);border-radius:10px;cursor:pointer;transition:all 0.2s}
+.scenario-opt:hover{border-color:var(--gold);background:rgba(201,168,76,0.08)}
+.scenario-opt.selected-best{border-color:#6ab384;background:rgba(74,124,89,0.2)}
+.scenario-opt.selected-bad{border-color:#c47a7a;background:rgba(124,58,58,0.2)}
+.scenario-opt-title{font-family:'Cinzel',serif;font-size:14px;color:var(--gold);margin-bottom:4px}
+.scenario-opt-desc{font-size:14px;color:#9a8a6a;line-height:1.5}
+
+/* DIVIDER */
+.ornament{text-align:center;color:var(--gold-dim);font-size:18px;margin:16px 0;letter-spacing:8px}
+
+/* FINAL */
+.final-wrap{text-align:center;padding:20px 0}
+.final-seal{font-size:80px;margin:16px 0;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.final-title{font-family:'Cinzel',serif;font-size:32px;font-weight:700;color:var(--gold);margin-bottom:12px;text-shadow:0 0 30px rgba(201,168,76,0.5)}
+.stars-row{font-size:36px;letter-spacing:8px;margin:12px 0}
+.score-badge{display:inline-block;background:rgba(201,168,76,0.15);border:1px solid var(--gold-dim);border-radius:12px;padding:8px 24px;font-family:'Cinzel',serif;font-size:18px;color:var(--gold);margin:8px 0}
+
+/* INTRO */
+.intro-deco{text-align:center;font-size:56px;margin:12px 0}
+.char-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.char-card{background:rgba(42,31,74,0.4);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px;text-align:center}
+.char-emoji{font-size:28px;margin-bottom:6px}
+.char-name{font-family:'Cinzel',serif;font-size:13px;color:var(--gold);margin-bottom:4px}
+.char-role{font-size:13px;color:#9a8a6a;font-style:italic}
+
+/* FLICKER */
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:0.85}95%{opacity:1}97%{opacity:0.9}98%{opacity:1}}
+.gold-glow{animation:flicker 6s infinite}
+
+/* RESPONSIVE */
+@media(max-width:520px){
+  .match-grid{grid-template-columns:1fr}
+  h1{font-size:22px}
+  .pw-letter{width:36px;height:46px;font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="game-wrap" id="root"></div>
+<script>
+const ROOMS=[
+  {id:1,pw:'MOLL',title:'Das verschlossene Archiv',subtitle:'Grundbegriffe der Romantik',deco:'🕯️'},
+  {id:2,pw:'SCHERZO',title:'Das Geheimnis der Partitur',subtitle:'Formen & Gattungen',deco:'🎼'},
+  {id:3,pw:'NOCTURNO',title:'Die Stunde des Komponisten',subtitle:'Werke & Komponisten zuordnen',deco:'🌙'},
+  {id:4,pw:'CHROMATIK',title:'Das Tor der Harmonik',subtitle:'Harmonik & Klangsprache',deco:'🎹'},
+  {id:5,pw:'SINFONIE',title:'Die letzte Probe',subtitle:'Transfer & kritisches Denken',deco:'🏆'},
+];
+
+let state={
+  screen:'intro',
+  room:0,
+  score:0,
+  roomScores:[0,0,0,0,0],
+  taskStep:0,
+  taskData:{},
+  hintsUsed:[false,false,false,false,false],
+  tasksDone:[false,false,false,false,false],
+};
+
+const $=id=>document.getElementById(id);
+const root=document.getElementById('root');
+
+function render(){
+  if(state.screen==='intro') renderIntro();
+  else if(state.screen==='room') renderRoom();
+  else if(state.screen==='password') renderPassword();
+  else if(state.screen==='final') renderFinal();
+}
+
+/* ─── INTRO ─── */
+function renderIntro(){
+  root.innerHTML=`
+  <div class="card">
+    <div class="card-deco">♩♪♫♬</div>
+    <div class="intro-deco gold-glow">🎻</div>
+    <h1>Die verschollene Sinfonie</h1>
+    <h3 style="margin-bottom:20px;font-style:italic;color:var(--gold-dim)">Ein Escape Room über die Musik der Romantik</h3>
+    <div class="maestro-box">
+      <div class="maestro-avatar">👻</div>
+      <div>
+        <div class="maestro-name">Maestro Moritz — Geistiger Begleiter</div>
+        <div class="maestro-text">„Endlich jemand! Ich, Maestro Moritz, Geist des verstorbenen Komponisten Ferdinand Rellstein, sitze hier seit 1847 fest. Meine letzte Sinfonie wurde gestohlen und in fünf Teile zerschnitten. Jeder Teil ist hinter einem musikalischen Rätsel verborgen. Ohne euch ist sie für immer verloren — und ich auch. Na los, ich bin nicht jünger geworden."</div>
+      </div>
+    </div>
+    <p>Die Nacht bricht über das alte Konservatorium herein. Irgendwo tickt eine Uhr. Fünf verschlossene Räume trennen euch vom letzten Satz von Rellsteins <em>Sinfonie in d-Moll</em>. Nur wer die Musik der Romantik kennt, findet den Weg.</p>
+    <div class="ornament">✦ ✦ ✦</div>
+    <p style="margin-bottom:6px"><strong style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold)">EURE CREW</strong></p>
+    <div class="char-row">
+      <div class="char-card">
+        <div class="char-emoji">🔍</div>
+        <div class="char-name">Lena</div>
+        <div class="char-role">Neugierig, hört überall hin — entdeckt Details, die andere übersehen</div>
+      </div>
+      <div class="char-card">
+        <div class="char-emoji">🎸</div>
+        <div class="char-name">Karim</div>
+        <div class="char-role">Skeptisch, Hobby-Musiker — fragt immer: „Aber warum eigentlich?"</div>
+      </div>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="startGame()">Die Nacht beginnt — Raum 1 betreten</button>
+  </div>`;
+}
+
+function startGame(){
+  state.screen='room';
+  state.room=0;
+  state.taskStep=0;
+  state.taskData={};
+  render();
+}
+
+/* ─── PROGRESS ─── */
+function renderProgress(){
+  const dots=ROOMS.map((r,i)=>{
+    const cls=i<state.room?'dot done':(i===state.room?'dot active':'dot');
+    return `<div class="${cls}">${i<state.room?'✓':r.id}</div>`;
+  }).join('');
+  return `<div class="progress-bar"><span class="progress-label">Räume</span><div class="dots-row">${dots}</div></div>`;
+}
+
+/* ─── ROOMS ─── */
+function renderRoom(){
+  const room=ROOMS[state.room];
+  const tasks=getRoomTasks(state.room);
+  const task=tasks[state.taskStep];
+  const header=`${renderProgress()}<div class="card"><div class="card-deco">${room.deco}</div><h2>${room.title}</h2><p class="muted" style="margin-bottom:16px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;text-transform:uppercase">${room.subtitle}</p>${renderMaestro(state.room)}<div class="ornament">✦</div>`;
+  root.innerHTML=header+renderTask(task,state.room,state.taskStep)+'</div>';
+}
+
+function renderMaestro(roomIdx){
+  const msgs=[
+    '„Hier drin liegt das Herzstück der Romantik. Kleiner Tipp: Gefühle waren damals wichtiger als Regeln. Wie bei mir — ich war auch nie sehr regelkonform."',
+    '„Die Partitur! Jemand hat die Seiten durcheinandergebracht. Als ob das irgendjemanden überrascht. Ich habe übrigens nicht aufgeräumt."',
+    '„Ah, das Arbeitszimmer meiner Kollegen. Ich sage nicht, wen ich mochte — aber Schubert schuldete mir noch Geld."',
+    '„Harmonik. Das schwierigste Schloss. Wer hier scheitert, hat wahrscheinlich zu wenig Debussy gehört. Oder zu viel."',
+    '„Das letzte Rätsel. Und ich schaue euch so gespannt an wie früher das Publikum — nur dass ich damals nicht durchsichtig war."',
+  ];
+  return `<div class="maestro-box"><div class="maestro-avatar">👻</div><div><div class="maestro-name">Maestro Moritz</div><div class="maestro-text">${msgs[roomIdx]}</div></div></div>`;
+}
+
+/* ─── TASKS ─── */
+function getRoomTasks(r){
+  return[r1tasks,r2tasks,r3tasks,r4tasks,r5tasks][r]();
+}
+
+/* ROOM 1 — Grundbegriffe */
+function r1tasks(){return[
+  {type:'quiz',question:'Lena liest auf einem verstaubten Plakat: „Die Romantik ist vor allem eine Epoche der…" Karim tippt: „Ich wette, das hat was mit Gefühlen zu tun." Wann begann die musikalische Romantik ungefähr?',
+   opts:['um 1600','um 1800','um 1900','um 1700'],correct:1,
+   fb:['Fast 200 Jahre zu früh! 1600 ist die Barockzeit — Bach, Händel, Schütz.','Genau! Um 1800 löst die Romantik die Klassik ab. Beethoven gilt als Brücke zwischen beiden Epochen.','Das wäre die Moderne. 1900 experimentieren Komponisten bereits mit Zwölftonmusik.','Das ist die Zeit des Barocks und der frühen Klassik.']},
+  {type:'quiz',question:'„LEIDENSCHAFT!" steht in roten Buchstaben an der Wand. Was ist das wichtigste Merkmal der Romantik im Vergleich zur Klassik?',
+   opts:['Strenge mathematische Ordnung','Tiefe persönliche Gefühle und Subjektivität','Möglichst einfache Melodien','Beschränkung auf wenige Instrumente'],correct:1,
+   fb:['Das ist eher ein Merkmal der Klassik (z.B. Sonate, Rondo-Form). Die Romantik bricht diese Strenge auf.','Richtig! Die Romantik betont das Innenleben des Künstlers — Sehnsucht, Schmerz, Liebe, Naturmystik.','Im Gegenteil: Romantische Melodien sind oft sehr komplex und ausgedehnt.','Falsch — das romantische Orchester wächst massiv, neue Instrumente wie Tuba und Piccolo kommen hinzu.']},
+  {type:'sort',question:'Karim findet ein zerrissenes Notenblatt mit drei Namen. „Die müssen in der richtigen Reihenfolge stehen", flüstert Lena. Sortiere diese Epochen chronologisch — von alt nach neu:',
+   items:['Romantik (ca. 1800–1900)','Barock (ca. 1600–1750)','Klassik (ca. 1750–1800)'],
+   correct:[1,2,0],fb:['Perfekt! Barock → Klassik → Romantik. Rellstein wäre stolz.',`Fast — denke an die Jahreszahlen. Barock endet ca. 1750, dann kommt Klassik (bis ~1800), dann Romantik.`]},
+]}
+
+/* ROOM 2 — Formen & Gattungen */
+function r2tasks(){return[
+  {type:'quiz',question:'Ein Notenblatt trägt den Titel „Symphonie Nr. 1". Was ist eine Symphonie in der Romantik?',
+   opts:['Ein kurzes Klavierstück für Schüler','Ein mehrsätziges Orchesterwerk von großem Ausmaß','Ein Lied für Stimme und Klavier','Ein Tanz aus drei Sätzen'],correct:1,
+   fb:['Kurze Klavierstücke nennt man z.B. Prélude oder Bagatelle — nicht Symphonie.','Genau! Romantische Sinfonien (z.B. Beethoven 9, Bruckner 8) sind oft riesige, mehrsätzige Orchesterwerke.','Das wäre ein Lied oder eine Arie. Für Stimme + Klavier gibt es den Begriff „Kunstlied".','Drei Sätze? Möglich — aber Sinfonien haben meist vier Sätze (schnell-langsam-tanz-schnell).']},
+  {type:'match',question:'Lena zieht vier Zettel aus einer Schublade: Gattungen durcheinander! Ordne jede musikalische Gattung der richtigen Beschreibung zu.',
+   left:['Symphonie','Nocturne','Kunstlied','Symphonische Dichtung'],
+   right:['Stimmungsvolles Nächtliches Klavierstück (z.B. Chopin)','Orchesterstück, das eine Dichtung erzählt (z.B. Strauss)','Mehrsätziges Orchesterwerk','Gedichtvertonung für Stimme + Klavier (z.B. Schubert)'],
+   correct:[2,0,3,1]},
+  {type:'quiz',question:'Karim findet eine Notiz: „Das Streichquartett gehört zur…" Welcher Gattung gehört das Streichquartett an?',
+   opts:['Orchestermusik','Kammermusik','Kirchenmusik','Bühnensatz'],correct:1,
+   fb:['Orchestermusik braucht viele Musiker — das Streichquartett besteht aus nur 4 Personen.','Richtig! Kammermusik ist für kleine Besetzungen gedacht — ursprünglich für Zimmer/Kammern, nicht für große Säle.','Kirchenmusik wäre z.B. Messe, Requiem oder Oratorium.','„Bühnensatz" ist kein musikhistorischer Begriff — Bühnenwerke sind Opern, Oratorien, Singspiele.']},
+]}
+
+/* ROOM 3 — Komponisten & Werke */
+function r3tasks(){return[
+  {type:'match',question:'An der Wand hängen Porträts mit abgedeckten Namen. Lena lächelt: „Ich kenne sie alle!" Ordne jedem Komponisten sein Hauptwerk zu.',
+   left:['Franz Schubert','Frédéric Chopin','Johannes Brahms','Richard Wagner'],
+   right:['Tristan und Isolde (Oper)','Winterreise (Liederzyklus)','Erste Sinfonie c-Moll','Klavierballade g-Moll Nr. 1'],
+   correct:[1,3,2,0]},
+  {type:'hotspot',question:'Ein Notenblatt zeigt sechs Symbole. Lena: „Drei davon kommen typisch in der Romantik vor!" Wähle die drei Elemente, die für romantische Musik typisch sind:',
+   items:[
+     {emoji:'🌲',label:'Naturbilder',correct:true},
+     {emoji:'📐',label:'Strenge Formen',correct:false},
+     {emoji:'💔',label:'Sehnsucht & Schmerz',correct:true},
+     {emoji:'🎭',label:'Programmmusik',correct:true},
+     {emoji:'⚖️',label:'Symmetrie & Balance',correct:false},
+     {emoji:'📏',label:'Einfache Kadenzen',correct:false},
+   ],needed:3},
+  {type:'quiz',question:'Karim hält ein Buch hoch: „Der Erlkönig — das kenne ich!" Wer hat „Der Erlkönig" vertont?',
+   opts:['Ludwig van Beethoven','Franz Schubert','Robert Schumann','Hector Berlioz'],correct:1,
+   fb:['Beethoven hat zwar auch Lieder geschrieben, aber „Der Erlkönig" nach Goethes Text stammt nicht von ihm.','Genau! Franz Schubert (1797–1828) hat Goethes Gedicht 1815 im Alter von 18 Jahren vertont — eine der bekanntesten Vertonungen überhaupt.','Schumann hat viele Lieder geschrieben, aber „Der Erlkönig" ist Schuberts Werk.','Berlioz war ein bedeutender französischer Romantiker, hat aber diese Vertonung nicht geschaffen.']},
+]}
+
+/* ROOM 4 — Harmonik */
+function r4tasks(){return[
+  {type:'quiz',question:'Lena zeigt auf ein Notenbeispiel: „Schau, lauter schwarze Halbtöne!" Was ist Chromatik in der Musik?',
+   opts:['Eine Melodie nur aus Ganztönen','Eine häufige Verwendung von Halbtönen außerhalb der Grundtonart','Ein Rhythmussystem aus dem Orient','Musik, die ausschließlich in Dur gespielt wird'],correct:1,
+   fb:['Das wäre die Ganztonleiter (z.B. bei Debussy). Chromatik bedeutet das Gegenteil: viele Halbtöne.','Richtig! Chromatik (griech. chroma = Farbe) meint das Einfügen von Halbtönen, die nicht zur Grundtonart gehören. Wagner ist ein Meister davon.','Ein Rhythmussystem ist das nicht — Chromatik betrifft die Tonhöhen (Melodik/Harmonik).','Dur hat nur wenige Halbtöne — Chromatik führt gezielt mehr davon ein.']},
+  {type:'scenario',question:'In Rellsteins Skizzenbuch steht: „Für das Ende des zweiten Satzes brauche ich mehr Ausdruck." Als romantischer Komponist: Was wäre die romantisch typischste Entscheidung?',
+   opts:[
+     {title:'Option A: Streng klassische Kadenz',desc:'Den Satz mit einer klaren, erwartbaren Tonika-Kadenz abschließen — klar, ordentlich, vorhersehbar.',best:false,fb:'Das wäre klassisch, nicht romantisch. Romantik lebt von Überraschung und emotionalem Überwältigen.'},
+     {title:'Option B: Chromatische Ausweichung',desc:'Eine unerwartete Tonartmodulation mit Chromatik einbauen — der Hörer soll erschaudern.',best:true,fb:'Genau das Romantische! Unerwartete Harmonik, Chromatik, emotionale Überraschung — das ist Rellsteins Stil.'},
+     {title:'Option C: Alles weglassen',desc:'Den Satz einfach abbrechen ohne Schluss — avantgardistisch und mutig.',best:false,fb:'Zu radikal für 1847! Das würden wir eher im 20. Jahrhundert erwarten (Cage, Stockhausen).'},
+   ]},
+  {type:'quiz',question:'Karim: „Ich hab mal gelesen, dass Moll traurig klingt." In welcher Tonart steht Rellsteins berühmte Sinfonie (laut Archivetitel)?',
+   opts:['C-Dur','d-Moll','G-Dur','h-Moll'],correct:1,
+   fb:['C-Dur ist hell und klar — nicht die passende Atmosphäre für Rellsteins dunkle Nachtmusik.','Richtig! d-Moll — Molltöne klingen schwerer, geheimnisvoller. Auch Mozarts Requiem und Beethovens 9. Sinfonie stehen in d-Moll.','G-Dur ist ein heller, offener Klang — nicht der romantisch-dunkle Ton dieser Sinfonie.','h-Moll wäre auch romantisch (Schuberts „Unvollendete" ist in h-Moll!), aber Rellsteins Sinfonie steht in d-Moll.']},
+]}
+
+/* ROOM 5 — Transfer */
+function r5tasks(){return[
+  {type:'quiz',question:'Lena liest Rellsteins Tagebuch: „Ich will, dass meine Musik eine Geschichte erzählt — den Kampf zwischen Licht und Dunkel." Welcher Begriff beschreibt Musik, die eine außermusikalische Idee darstellt?',
+   opts:['Absolute Musik','Programmmusik','Kammermusik','Liturgische Musik'],correct:1,
+   fb:['Absolute Musik ist das Gegenteil! Sie verzichtet bewusst auf außermusikalischen Inhalt (z.B. Brahms).','Genau! Programmmusik erzählt eine Geschichte oder malt ein Bild — z.B. Berlioz\' „Fantastique", Smetanas „Moldau".','Kammermusik bezieht sich auf die Besetzungsgröße, nicht auf den Inhalt.','Liturgische Musik ist für den Gottesdienst bestimmt — das ist hier nicht gemeint.']},
+  {type:'sort',question:'Karim findet Rellsteins Entwurf für den letzten Satz. Die vier Teile eines klassischen Sonatenhauptsatzes sind durcheinander. Bringe sie in die richtige Reihenfolge:',
+   items:['Reprise (Wiederkehr des Themas)','Exposition (Vorstellung der Themen)','Durchführung (Entwicklung & Konflikte)','Coda (Abschluss)'],
+   correct:[1,2,0,3],fb:['Perfekt! Exposition → Durchführung → Reprise → Coda. Das ist die klassische Sonatenhauptsatzform!',`Nicht ganz — die richtige Reihenfolge: Exposition (Themen vorstellen) → Durchführung (entwickeln) → Reprise (wiederbringen) → Coda (abschließen).`]},
+  {type:'scenario',question:'Rellsteins Sinfonie ist fast komplett. Für das Finale gibt es drei Entwürfe. Karim: „Was wäre am romantischsten und überzeugendsten?" Welcher Schluss passt am besten zur Romantik?',
+   opts:[
+     {title:'Entwurf A: Strahlender Dur-Schluss',desc:'Ein triumphaler, lauter Schluss in D-Dur — das Licht besiegt die Dunkelheit. Großes Orchester, Pauken, Trompeten.',best:false,fb:'Möglich, aber nicht typisch romantisch. Manche Sinfonien enden so (Beethoven 5) — aber das ist eher klassisch-heroisch.'},
+     {title:'Entwurf B: Verklingender Schluss ins Nichts',desc:'Das Orchester wird leiser und leiser — die letzte Note verhallt ins Schweigen. Offenes Ende, ungelöste Spannung.',best:true,fb:'Ja! Das ist romantisches Denken: kein triumphaler Abschluss, sondern Sehnsucht, die unerfüllt bleibt. Typisch für Schubert, Bruckner, Mahler.'},
+     {title:'Entwurf C: Wiederholung des Anfangs',desc:'Der erste Takt der Sinfonie kehrt zurück — als würde alles von vorne beginnen. Kreisförmige Struktur.',best:false,fb:'Interessant, aber das wäre eher ein moderner Trick. In der Romantik ist das ungewöhnlich, auch wenn zyklische Formen vorkommen.'},
+   ]},
+]}
+
+/* ─── TASK RENDERER ─── */
+function renderTask(task,r,step){
+  const td=state.taskData;
+  let html=`<div id="task-wrap">`;
+
+  if(task.type==='quiz'){
+    html+=`<h3>${task.question}</h3><div class="quiz-options">`;
+    task.opts.forEach((o,i)=>{
+      const done=td.answered;
+      const cls=done?(i===task.correct?'quiz-opt correct':(i===td.chosen?'quiz-opt wrong':'quiz-opt')):('quiz-opt');
+      html+=`<button class="${cls}" ${done?'disabled':''} onclick="answerQuiz(${i})">${o}</button>`;
+    });
+    html+='</div>';
+    if(td.answered){
+      const ok=td.chosen===task.correct;
+      html+=`<div class="feedback ${ok?'ok':'err'}">${ok?'✓ ':'✗ '}${task.fb[td.chosen]}</div>`;
+      html+=`<button class="btn btn-gold btn-full" style="margin-top:16px" onclick="nextStep()">Weiter →</button>`;
+      if(ok&&!state.tasksDone[r]) state.roomScores[r]++;
+    }
+  }
+
+  else if(task.type==='sort'){
+    if(!td.sortItems) td.sortItems=[...Array(task.items.length).keys()];
+    html+=`<h3>${task.question}</h3><div class="sort-list" id="sort-list">`;
+    td.sortItems.forEach((idx,pos)=>{
+      html+=`<div class="sort-item" draggable="true" data-pos="${pos}" ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dropItem(event)" ondragleave="dragLeave(event)"><span class="sort-handle">☰</span><span class="sort-num">${pos+1}.</span><span>${task.items[idx]}</span></div>`;
+    });
+    html+='</div>';
+    if(td.sortChecked){
+      const ok=td.sortItems.every((v,i)=>v===task.correct[i]);
+      html+=`<div class="sort-result feedback ${ok?'ok':'err'}">${ok?'✓ '+task.fb[0]:'✗ '+task.fb[1]}</div>`;
+      html+=`<button class="btn btn-gold btn-full" style="margin-top:12px" onclick="nextStep()">Weiter →</button>`;
+      if(ok&&!state.tasksDone[r]) state.roomScores[r]++;
+    } else {
+      html+=`<button class="btn btn-gold" style="margin-top:8px" onclick="checkSort(${r})">Reihenfolge prüfen</button>`;
+    }
+  }
+
+  else if(task.type==='match'){
+    if(!td.matchState) td.matchState={sel:null,done:[],wrong:[]};
+    const ms=td.matchState;
+    html+=`<h3>${task.question}</h3><div class="match-grid"><div class="match-col-head">Begriff</div><div class="match-col-head">Beschreibung</div>`;
+    const shuffled=td.shuffledRight||(()=>{
+      const arr=[...Array(task.left.length).keys()];
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+      td.shuffledRight=arr;return arr;
+    })();
+    task.left.forEach((l,i)=>{
+      const paired=ms.done.find(d=>d.l===i);
+      const cls=paired?'match-item matched-ok':(ms.sel&&ms.sel.side==='l'&&ms.sel.i===i?'match-item selected':'match-item');
+      html+=`<div class="${cls}" onclick="matchClick('l',${i})">${l}</div>`;
+    });
+    shuffled.forEach((ri,pos)=>{
+      const paired=ms.done.find(d=>d.r===ri);
+      const isBad=ms.wrong.includes(ri);
+      const cls=paired?'match-item matched-ok':(isBad?'match-item matched-err':(ms.sel&&ms.sel.side==='r'&&ms.sel.i===ri?'match-item selected':'match-item'));
+      html+=`<div class="${cls}" onclick="matchClick('r',${ri})">${task.right[ri]}</div>`;
+    });
+    html+='</div>';
+    if(ms.done.length===task.left.length){
+      const allOk=ms.done.every(d=>task.correct[d.l]===d.r);
+      html+=`<div class="feedback ${allOk?'ok':'err'}">${allOk?'✓ Alle Zuordnungen korrekt! Gut kombiniert.':'Nicht alle Paare stimmen, aber du hast es geschafft! Schau dir die Lösungen an.'}</div>`;
+      html+=`<button class="btn btn-gold btn-full" style="margin-top:12px" onclick="nextStep()">Weiter →</button>`;
+      if(allOk&&!state.tasksDone[r]) state.roomScores[r]++;
+    }
+  }
+
+  else if(task.type==='hotspot'){
+    if(!td.hotSel) td.hotSel=[];
+    html+=`<h3>${task.question}</h3><p class="muted">Wähle genau ${task.needed} Elemente.</p><div class="hotspot-grid">`;
+    task.items.forEach((item,i)=>{
+      const sel=td.hotSel.includes(i);
+      const done=td.hotDone;
+      const cls=done?(item.correct?'hotspot-cell correct':(sel?'hotspot-cell wrong':'hotspot-cell')):(sel?'hotspot-cell selected':'hotspot-cell');
+      html+=`<div class="${cls}" onclick="${done?'':'toggleHotspot('+i+')'}"><div style="font-size:32px">${item.emoji}</div><div class="hotspot-label">${item.label}</div></div>`;
+    });
+    html+='</div>';
+    if(td.hotDone){
+      const correct=task.items.filter(i=>i.correct);
+      const chosen=td.hotSel.map(i=>task.items[i]);
+      const allOk=chosen.every(i=>i.correct)&&chosen.length===task.needed;
+      html+=`<div class="feedback ${allOk?'ok':'err'}">${allOk?'✓ Genau! Naturbilder, Sehnsucht & Schmerz und Programmmusik sind typisch romantisch.':'✗ Nicht ganz. Typisch romantisch: Naturbilder 🌲, Sehnsucht & Schmerz 💔, Programmmusik 🎭.'}</div>`;
+      html+=`<button class="btn btn-gold btn-full" style="margin-top:12px" onclick="nextStep()">Weiter →</button>`;
+      if(allOk&&!state.tasksDone[r]) state.roomScores[r]++;
+    } else {
+      html+=`<button class="btn btn-gold" ${td.hotSel.length!==task.needed?'disabled':''} onclick="checkHotspot(${r})">Auswahl bestätigen</button>`;
+    }
+  }
+
+  else if(task.type==='scenario'){
+    html+=`<h3>${task.question}</h3><div class="scenario-cards">`;
+    task.opts.forEach((o,i)=>{
+      const chosen=td.scenChosen;
+      let cls='scenario-opt';
+      if(chosen!==undefined) cls+=o.best?' selected-best':' selected-bad';
+      html+=`<div class="${cls}" onclick="${chosen!==undefined?'':'chooseScenario('+i+','+r+')'}" data-idx="${i}">
+        <div class="scenario-opt-title">${o.title}</div>
+        <div class="scenario-opt-desc">${o.desc}</div>
+        ${chosen!==undefined?`<div class="feedback ${o.best?'ok':'err'}" style="margin-top:8px;padding:8px 12px">${o.best?'✓':'✗'} ${o.fb}</div>`:''}
+      </div>`;
+    });
+    html+='</div>';
+    if(td.scenChosen!==undefined){
+      html+=`<button class="btn btn-gold btn-full" style="margin-top:8px" onclick="nextStep()">Weiter →</button>`;
+    }
+  }
+
+  html+='</div>';
+  return html;
+}
+
+/* ─── TASK ACTIONS ─── */
+window.answerQuiz=function(i){
+  state.taskData.answered=true;
+  state.taskData.chosen=i;
+  render();
+};
+
+window.dragStart=function(e){
+  e.dataTransfer.setData('text/plain',e.target.dataset.pos);
+  e.target.classList.add('dragging');
+};
+window.dragOver=function(e){
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+};
+window.dragLeave=function(e){
+  e.currentTarget.classList.remove('drag-over');
+};
+window.dropItem=function(e){
+  e.preventDefault();
+  const from=parseInt(e.dataTransfer.getData('text/plain'));
+  const to=parseInt(e.currentTarget.dataset.pos);
+  if(from===to) return;
+  const items=[...state.taskData.sortItems];
+  [items[from],items[to]]=[items[to],items[from]];
+  state.taskData.sortItems=items;
+  e.currentTarget.classList.remove('drag-over');
+  document.querySelectorAll('.dragging').forEach(el=>el.classList.remove('dragging'));
+  render();
+};
+window.checkSort=function(r){
+  state.taskData.sortChecked=true;
+  render();
+};
+
+window.matchClick=function(side,i){
+  const ms=state.taskData.matchState;
+  if(!ms) return;
+  if(ms.done.find(d=>d.l===i&&side==='l')||ms.done.find(d=>d.r===i&&side==='r')) return;
+  if(!ms.sel){ms.sel={side,i};render();return;}
+  if(ms.sel.side===side){ms.sel={side,i};render();return;}
+  const l=side==='l'?i:ms.sel.i;
+  const r2=side==='r'?i:ms.sel.i;
+  ms.sel=null;
+  ms.done.push({l,r:r2});
+  ms.wrong=ms.wrong.filter(x=>x!==r2);
+  render();
+};
+
+window.toggleHotspot=function(i){
+  if(!state.taskData.hotSel) state.taskData.hotSel=[];
+  const arr=state.taskData.hotSel;
+  const idx=arr.indexOf(i);
+  if(idx>=0) arr.splice(idx,1); else arr.push(i);
+  const btn=document.querySelector('[onclick^="checkHotspot"]');
+  const task=getRoomTasks(state.room)[state.taskStep];
+  if(btn) btn.disabled=arr.length!==task.needed;
+  render();
+};
+window.checkHotspot=function(r){
+  state.taskData.hotDone=true;
+  render();
+};
+
+window.chooseScenario=function(i,r){
+  const task=getRoomTasks(r)[state.taskStep];
+  state.taskData.scenChosen=i;
+  if(task.opts[i].best&&!state.tasksDone[r]) state.roomScores[r]++;
+  render();
+};
+
+window.nextStep=function(){
+  const tasks=getRoomTasks(state.room);
+  state.tasksDone[state.room]=true;
+  if(state.taskStep<tasks.length-1){
+    state.taskStep++;
+    state.taskData={};
+    render();
+  } else {
+    state.score=state.roomScores.reduce((a,b)=>a+b,0);
+    state.screen='password';
+    render();
+  }
+};
+
+/* ─── PASSWORD ─── */
+function renderPassword(){
+  const room=ROOMS[state.room];
+  const hint=getHint(state.room);
+  const used=state.hintsUsed[state.room];
+  root.innerHTML=`
+  ${renderProgress()}
+  <div class="card">
+    <div class="card-deco">🔐</div>
+    <h2>Passwort-Schloss</h2>
+    <p>Du hast alle Rätsel in <em>${room.title}</em> gelöst. Jetzt brauchst du das Passwort, um den nächsten Raum zu öffnen.</p>
+    <div class="maestro-box">
+      <div class="maestro-avatar">👻</div>
+      <div>
+        <div class="maestro-name">Maestro Moritz</div>
+        <div class="maestro-text">${getPwMaestro(state.room)}</div>
+      </div>
+    </div>
+    <div class="pw-wrap">
+      <p style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold-dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px">Passwort eingeben</p>
+      <div class="pw-input-row" id="pw-row"></div>
+      <div id="pw-msg"></div>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <button class="btn btn-outline btn-sm" onclick="toggleHint(${state.room})">${used?'Tipp verbergen':'Tipp anzeigen'}</button>
+      <div class="pw-hint ${used?'visible':''}" id="hint-box">${hint}</div>
+    </div>
+    <button class="btn btn-gold btn-full" style="margin-top:16px" onclick="checkPassword()">Schloss öffnen</button>
+  </div>`;
+  buildPwInputs();
+}
+
+function buildPwInputs(){
+  const pw=ROOMS[state.room].pw;
+  const row=$('pw-row');
+  if(!row) return;
+  row.innerHTML='';
+  pw.split('').forEach((c,i)=>{
+    const inp=document.createElement('input');
+    inp.type='text';inp.maxLength=1;inp.className='pw-letter';inp.id='pwl'+i;
+    inp.addEventListener('input',e=>{
+      e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,'');
+      if(e.target.value&&i<pw.length-1) $('pwl'+(i+1)).focus();
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!e.target.value&&i>0) $('pwl'+(i-1)).focus();
+    });
+    row.appendChild(inp);
+  });
+  $('pwl0').focus();
+}
+
+function getHint(r){
+  return[
+    'Das Gegenteil von Dur — die dunkle, schwermütige Tongeschlechtsbezeichnung.',
+    'Beethoven nutzte es für heitere, schnelle Sätze — das „Witz"-Stück in der Sinfonie.',
+    'Chopin liebte diese nächtliche Form. Was klingt nach „Nacht" auf Latein?',
+    'Die Eigenschaft der romantischen Harmonik: Halbtonschritte überall — wie nennt man das?',
+    'Rellsteins Werk, für das ihr kämpft — eine mehrsätzige Orchesterkomposition.',
+  ][r];
+}
+
+function getPwMaestro(r){
+  return[
+    '„Das Passwort ist musikalischer Natur. Denkt an die Tonarten — eine klingt schwer, eine leicht. Welche wählt man für traurige Musik?"',
+    '„Irgendwo zwischen den Sätzen meiner Sinfonie liegt das Wort. Beethoven hat diese Art von Satz erfunden — ich fand ihn immer etwas albern. Aber effektiv."',
+    '„Denkt an Chopin. Er spielte nachts am liebsten. Und er liebte eine ganz bestimmte Form, die genau das ausdrückt."',
+    '„Harmonik war meine Leidenschaft. Diese eine Eigenschaft hat meine Musik berühmt gemacht — sie klingt nach Farbe."',
+    '„Das letzte Wort. Es ist das Größte, was ein Orchesterkomponist schreiben kann. Oder konnte. Ich schreibe ja nicht mehr."',
+  ][r];
+}
+
+window.toggleHint=function(r){
+  state.hintsUsed[r]=!state.hintsUsed[r];
+  const box=$('hint-box');
+  const btn=document.querySelector('[onclick^="toggleHint"]');
+  if(box) box.classList.toggle('visible',state.hintsUsed[r]);
+  if(btn) btn.textContent=state.hintsUsed[r]?'Tipp verbergen':'Tipp anzeigen';
+};
+
+window.checkPassword=function(){
+  const pw=ROOMS[state.room].pw;
+  let val='';
+  for(let i=0;i<pw.length;i++){
+    const el=$('pwl'+i);
+    if(el) val+=el.value;
+  }
+  const msg=$('pw-msg');
+  if(val.toUpperCase()===pw){
+    if(msg){msg.innerHTML='<div class="pw-stars">★★★</div><div class="pw-ok" style="font-family:Cinzel,serif;font-size:16px">✓ Korrekt! Der Raum öffnet sich...</div>';}
+    setTimeout(()=>{
+      if(state.room<ROOMS.length-1){
+        state.room++;state.taskStep=0;state.taskData={};state.screen='room';
+      } else {
+        state.screen='final';
+      }
+      render();
+    },1200);
+  } else {
+    if(msg){msg.innerHTML='<div class="pw-err">✗ Das ist nicht das richtige Passwort. Denk nochmal nach — oder schau dir den Tipp an.</div>';}
+    const inputs=document.querySelectorAll('.pw-letter');
+    inputs.forEach(el=>{el.style.borderColor='var(--error)';setTimeout(()=>el.style.borderColor='',800);});
+  }
+};
+
+/* ─── FINAL ─── */
+function renderFinal(){
+  const total=state.roomScores.reduce((a,b)=>a+b,0);
+  const max=15;
+  const pct=Math.round(total/max*100);
+  const stars=pct>=80?'⭐⭐⭐':pct>=50?'⭐⭐':'⭐';
+  const comment=pct>=80
+    ?'„Unglaublich. Ihr habt meine Sinfonie gerettet — und mich dazu. Ich werde jetzt endlich Ruhe finden. Aber zuerst: Danke. Von einem Geist zu Menschen, die auf Musik hören."'
+    :pct>=50
+    ?'„Nicht schlecht. Ein paar Noten fehlen noch — aber die Sinfonie klingt wieder! Mit mehr Übung werdet ihr ein vollständiges Konzert geben können."'
+    :'„Ihr habt es versucht. Meine Sinfonie ist noch etwas… lückenhaft. Aber hey, immerhin bin ich jetzt etwas weniger allein."';
+  root.innerHTML=`
+  ${renderProgress()}
+  <div class="card">
+    <div class="final-wrap">
+      <div class="final-seal gold-glow">🎻</div>
+      <div class="final-title">Die Sinfonie lebt wieder!</div>
+      <div class="maestro-box" style="text-align:left">
+        <div class="maestro-avatar">👻</div>
+        <div><div class="maestro-name">Maestro Moritz — Finales Wort</div><div class="maestro-text">${comment}</div></div>
+      </div>
+      <div class="ornament" style="font-size:28px;letter-spacing:12px">♩ ♪ ♫ ♬</div>
+      <div class="stars-row">${stars}</div>
+      <div class="score-badge">Wissen-Score: ${total} / ${max} Punkten</div>
+      <p style="margin-top:8px;color:var(--gold-dim);font-size:14px">${pct}% der Aufgaben korrekt gelöst</p>
+      <div style="margin-top:20px;text-align:left;background:rgba(42,31,74,0.3);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:16px">
+        <p style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Passwörter der Sinfonie</p>
+        ${ROOMS.map(r=>`<p style="font-size:14px;margin-bottom:4px">Raum ${r.id}: <span style="font-family:'Cinzel',serif;color:var(--gold)">${r.pw}</span> — ${r.title}</p>`).join('')}
+      </div>
+      <button class="btn btn-gold" style="margin-top:20px" onclick="restartGame()">Nochmal spielen</button>
+    </div>
+  </div>`;
+}
+
+window.restartGame=function(){
+  state={screen:'intro',room:0,score:0,roomScores:[0,0,0,0,0],taskStep:0,taskData:{},hintsUsed:[false,false,false,false,false],tasksDone:[false,false,false,false,false]};
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
