@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Quizmaster Wolf">
+    <meta name="theme-color" content="#26a69a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon_192.png">
+
+    <title>Quizmaster Wolf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Quicksand', sans-serif; background: #f0fffe; color: #1a4a44; min-height: 100vh; padding: 24px 16px 40px; overscroll-behavior-y: contain; -webkit-tap-highlight-color: transparent; }
+
+        header { text-align: center; padding: 24px 0 32px; }
+        .app-icon { font-size: 2.4rem; margin-bottom: 8px; letter-spacing: 4px; }
+        header h1 { font-size: 1.8rem; font-weight: 700; color: #1a7a72; margin-bottom: 4px; }
+
+        .quiz-list { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-card { background: white; border-radius: 14px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; text-decoration: none; color: #1a4a44; box-shadow: 0 2px 10px rgba(38,166,154,0.08); border: 1.5px solid #e0f7f4; border-left: 6px solid #26a69a; transition: transform 0.15s; }
+        .quiz-card:active { transform: scale(0.98); }
+        .quiz-icon { font-size: 1.6rem; flex-shrink: 0; }
+        .quiz-info { flex: 1; }
+        .quiz-title { font-size: 1rem; font-weight: 700; color: #1a7a72; }
+
+        .wolf-header-logo { width: 80px; height: 80px; display: block; margin: 0 auto 4px; }
+        .wolf-brand { font-size: 0.85rem; font-weight: 600; color: #b2dfdb; letter-spacing: 1px; margin-bottom: 4px; }
+        .quiz-meta { font-size: 0.8rem; color: #7ab8b3; font-weight: 600; }
+    </style>
+</head>
+
+<body>
+
+
+
+<header>
+  <img class="wolf-header-logo" src="wolf-logo.png" alt="Quizmaster Wolf">
+
+  <h1>Quizmaster Wolf</h1>
+</header>
+
+<a class="quiz-card" href="romantik_musik_escape_room.html"><span class="quiz-icon">&#127931;</span><div class="quiz-info"><div class="quiz-title">Escape Room: Romantik</div><div class="quiz-meta">Musik &middot; Klasse 9</div></div></a>
+
+<footer style="text-align:center;padding:16px;margin-top:8px;font-family:'Quicksand',sans-serif;font-size:0.72rem;color:#b2dfdb;font-weight:600;">
+  &copy; 2026&ndash;2027 Julia Wolf &middot; Quizmaster Wolf &middot; Alle Rechte vorbehalten
+  &middot; <a href="mailto:julia.wolf@tutamail.com" style="color:#7ab8b3;text-decoration:none;">julia.wolf [at] tutamail.com</a>
+</footer>
+
+</body>
+</html>
